@@ -37,6 +37,7 @@ namespace CGSS_Stamina_CalcAPI
         public TimeSpan CurrentRemainingTime { get; private set; }
 
         public DateTime MaxStaminaTime { get; private set; }
+        public string MaxStaminaTime_ISO8601 { get; private set; }
         public long MaxStaminaTime_Unix { get; private set; }
         public string MaxStaminaTime_Unix_Str { get; private set; }
         public StaminaTime(int current, int max, string remainingnext)
@@ -64,6 +65,10 @@ namespace CGSS_Stamina_CalcAPI
             var expendedStamina = this.MaxStamina - this.CurrentStamina - 1;
             var recoveryTimeSpan = new TimeSpan(0, expendedStamina * 5, 0);
             this.MaxStaminaTime = currentTime.Add(CurrentRemainingTime).Add(recoveryTimeSpan);
+
+            this.MaxStaminaTime_ISO8601 = this.MaxStaminaTime.ToString("yyyy-MM-dd'T'HH:mm:sszzzz");
+            this.MaxStaminaTime_Unix = new DateTimeOffset(this.MaxStaminaTime.Ticks, new TimeSpan(9, 0, 0)).ToUnixTimeSeconds();
+            this.MaxStaminaTime_Unix_Str = this.MaxStaminaTime_Unix.ToString();
         }
     }
 }
