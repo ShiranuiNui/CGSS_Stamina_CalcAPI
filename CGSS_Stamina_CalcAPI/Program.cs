@@ -10,7 +10,6 @@ namespace CGSS_Stamina_CalcAPI
     {
         static void Main(string[] args)
         {
-            Console.WriteLine("Hello World!");
             HostConfiguration hostConfigs = new HostConfiguration()
             {
                 UrlReservations = new UrlReservations() { CreateAutomatically = true }
@@ -27,7 +26,29 @@ namespace CGSS_Stamina_CalcAPI
     {
         public HelloModule()
         {
-            Get("/", args => "RUNNING!!!");
+            Get("/{current:int}/{max:int}/{remaining?}", async args =>
+            {
+                StaminaTime requestedtime = null;
+                try
+                {
+                    string remaining = args.remaining;
+                    requestedtime = new StaminaTime(args.current, args.max, remaining ?? "00:00");
+                }
+                catch (ArgumentOutOfRangeException ex)
+                {
+                    return await this.Response.AsJson(ex.Message).WithStatusCode(400);
+                }
+                catch (ArgumentException ex)
+                {
+                    return await this.Response.AsJson(ex.Message).WithStatusCode(400);
+                }
+                return await this.Response.AsJson(new
+                {
+                    MaxStaminaTime_ISO8601 = requestedtime.MaxStaminaTime_ISO8601,
+                    MaxStaminaTime_Unix = requestedtime.MaxStaminaTime_Unix,
+                    MaxStaminaTime_Str = requestedtime.MaxStaminaTime_Unix_Str
+                });
+            });
         }
     }
     public class StaminaTime
@@ -44,7 +65,10 @@ namespace CGSS_Stamina_CalcAPI
         {
             this.CurrentStamina = current;
             this.MaxStamina = max;
-
+            if (this.CurrentStamina >= this.MaxStamina)
+            {
+                throw new ArgumentException("Current Stamina Must be Lower than Max Stamina");
+            }
             string[] remaining_mmssArray = remainingnext.Split(":");
             if (remaining_mmssArray.Length < 2)
             {
@@ -57,7 +81,7 @@ namespace CGSS_Stamina_CalcAPI
             }
             if (mm > 5 || ss > 60)
             {
-                throw new ArgumentOutOfRangeException("CurrentRemainingTime OutofRange Error");
+                throw new ArgumentOutOfRangeException("CurrentRemainingTime OutofRange");
             }
             this.CurrentRemainingTime = new TimeSpan(0, mm, ss);
 
