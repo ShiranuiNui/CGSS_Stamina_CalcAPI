@@ -18,7 +18,7 @@ namespace CGSS_Stamina_CalcAPI
             {
                 host.Start();
                 Console.WriteLine("Running on http://*:50120");
-                Console.ReadLine();
+                while(true){}
             }
         }
     }
